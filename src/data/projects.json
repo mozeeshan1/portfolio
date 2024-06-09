@@ -1,0 +1,14 @@
+[
+  {
+    "slug":"monumental",
+    "title": "Monumental",
+    "description": "This is an AR game",
+    "imageUrl": "https://mozeeshan.s3.eu-west-2.amazonaws.com/Projects/Monumental/monumental_16x9.jpg"
+  },
+  {
+    "slug":"lego-vn",
+    "title": "Lego VN",
+    "description": "This is a lego visual novel",
+    "imageUrl": "https://mozeeshan.s3.eu-west-2.amazonaws.com/Projects/BBoL/legoVN.jpg"
+  }
+]
