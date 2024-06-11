@@ -1,0 +1,3 @@
+User-agent: *
+Disallow:
+Sitemap: https://mozeeshan.com/sitemap.xml

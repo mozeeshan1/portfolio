@@ -7,3 +7,5 @@ export const div = motion.div;
 export const h1 = motion.h1;
 export const p = motion.p;
 export const a = motion.a;
+export const button = motion.button
+export const svg= motion.svg

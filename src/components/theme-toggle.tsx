@@ -1,21 +1,13 @@
 // components/ThemeToggle.tsx
 "use client";
-import { useState, useEffect } from "react";
+import {  useEffect } from "react";
 import { useTheme } from "next-themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence} from "framer-motion";
 
 const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  const buttonVariants = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-  };
 
   useEffect(() => {
-    setMounted(true);
     console.log("Theme initialized to: ", theme);
   }, []);
 
@@ -26,34 +18,53 @@ const ThemeToggle = () => {
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
-    console.log("Theme set to: ", newTheme); // Log the new theme value
   };
 
-  // Determine button label based on the theme
-  const getButtonLabel = () => {
-    if (!mounted) {
-      // Render a transparent placeholder
-      return <span style={{ opacity: 0 }}>Placeholder</span>;
-    }
-    return theme === "dark"
-      ? "Switch to Light Mode"
-      : "Switch to Dark Mode";
-  };
+const circleVariants = {
+  inital:{
+    scale:0
+  },
+  light: {
+    scale: 1,
+    transition: { duration: 0.5 , ease: "easeInOut" },
+  },
+  exit:{scale:0}
+};
+
+
 
   return (
     <AnimatePresence mode="wait">
-      <motion.button
+      <motion.div
         key={theme}
-        initial="initial"
-        animate="animate"
-        exit="exit"
-        variants={buttonVariants}
-        transition={{ duration: 0.3 }}
-        className="p-2 bg-gray-200 dark:bg-gray-600 rounded shadow-md hover:bg-gray-300 dark:hover:bg-gray-500 text-black dark:text-white"
-        onClick={toggleTheme}
+        className="p-2 bg-transparent group" 
       >
-        {getButtonLabel()}
-      </motion.button>
+        <motion.svg
+          width="36"
+          height="36"
+          viewBox="0 0 36 36"
+          xmlns="http://www.w3.org/2000/svg"
+          className={"cursor-pointer"}
+          onClick={toggleTheme}
+        >
+          <motion.circle
+            cx="18"
+            cy="18"
+            r="16"
+            className={`fill-current text-blue-600 group-hover:text-blue-700 dark:text-yellow-200 dark:group-hover:text-amber-300`}
+          />
+          <motion.circle
+            cx="24"
+            cy="10"
+            r="12"
+            className={`fill-current text-white dark:text-gray-800`}
+            initial="inital"
+            animate={theme}
+            exit="exit"
+            variants={circleVariants}
+          />
+        </motion.svg>
+      </motion.div>
     </AnimatePresence>
   );
 };

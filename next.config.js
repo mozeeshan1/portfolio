@@ -7,8 +7,13 @@ const nextConfig = {
         hostname: "mozeeshan.s3.eu-west-2.amazonaws.com",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "pub-63262c5a2dfe44a886768b955c3b3ba5.r2.dev",
+        port: "",
+      },
     ],
   },
 };
 
-module.exports = nextConfig
+module.exports = nextConfig;
