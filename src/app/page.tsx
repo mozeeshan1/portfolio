@@ -7,14 +7,24 @@ import Link from "next/link";
 async function Projects() {
   let { data: projects, error } = await supabase.from("projects").select("*");
 
-  if (!projects) {
-    console.log("Projects is null");
-    return [];
-  }
   if (error) {
     console.error("Error fetching projects:", error);
     return [];
   }
+  if (projects) {
+    // Process each project's date to extract the year
+    projects = projects
+      .filter((project) => project.status.toLowerCase() !== "unconfirmed") // Filter out unconfirmed projects
+      .map((project) => ({
+        ...project,
+        date: new Date(project.date).getFullYear().toString(), // Convert date to year
+      })) // Sort projects from newest to oldest by year
+      .sort((a, b) => b.date - a.date);
+  } else {
+    console.log("Projects is null");
+    projects = [];
+  }
+
   return projects;
 }
 
@@ -136,9 +146,9 @@ export default async function Home() {
         <p className="mx-8 ">
           Hello! I’m Mohammed Zeeshan, a seasoned Data Scientist and Software
           Developer with a robust academic background and a rich portfolio of
-          real-world applications. With a Master&apos;s in Advanced Computer Science
-          from the University of Strathclyde, I excel in creating sophisticated
-          algorithms that drive innovative software solutions.
+          real-world applications. With a Master&apos;s in Advanced Computer
+          Science from the University of Strathclyde, I excel in creating
+          sophisticated algorithms that drive innovative software solutions.
           <br />
           <br />
           My expertise spans across machine learning, big data analytics, and
@@ -146,8 +156,8 @@ export default async function Home() {
           engagement and experience. My professional journey has equipped me
           with profound technical skills and an adaptive approach, allowing me
           to thrive in diverse environments—from startups like 10zyme, where I
-          refined web and mobile applications for enhanced HPV detection, to Y Entertainment
-          where I integrated AI and blockchain technologies.
+          refined web and mobile applications for enhanced HPV detection, to Y
+          Entertainment where I integrated AI and blockchain technologies.
           <br />
           <br />
           In each role, I aim to merge cutting-edge technology with practical
@@ -169,7 +179,7 @@ export default async function Home() {
       <section id="projects-section" className="my-12">
         <h2 className="text-3xl font-bold mb-10 text-center">Projects</h2>
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-16 sm:px-16 2xl:px-[15%]"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-16 sm:px-16 2xl:px-[15%]"
           variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         >
           {projectsData.map((project, index) => (
@@ -181,18 +191,37 @@ export default async function Home() {
             >
               <motion.div
                 key={index}
-                className="p-4 shadow-md w-fit h-fit hover:shadow-lg rounded-lg cursor-pointer dark:shadow-white "
+                className="p-4 shadow-md w-fit h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
                 variants={childVariants}
                 whileHover={"hover"}
               >
-                <h3 className="text-2xl font-semibold">{project.title}</h3>
-                <p className="pb-2">{project.description}</p>
+                <div
+                  key={index}
+                  className="flex flex-col justify-between items-center pb-2 sm:flex-row"
+                >
+                  <div
+                    key={index}
+                    className="flex flex-col justify-between items-center sm:items-start"
+                  >
+                    <h3 className="text-2xl font-semibold">{project.title}</h3>
+                    <p className="pb-2">{project.description}</p>
+                  </div>
+                  <div
+                    key={index}
+                    className="flex flex-col-reverse sm:flex-col justify-between items-center gap-1"
+                  >
+                    <p className="text-md capitalize px-4 py-px rounded-2xl border-2 text-gray-200 dark:text-gray-700 border-blue-600 bg-blue-600 dark:bg-yellow-200 dark:border-yellow-200">
+                      {project.status}
+                    </p>
+                    <p className="text-md capitalize">{project.date}</p>
+                  </div>
+                </div>
                 <Image
                   src={project.titleImageUrl}
                   alt={project.title}
                   width={1000}
                   height={1000}
-                  className="w-[80vw] h-auto"
+                  className="w-[90vw] h-auto"
                 />
               </motion.div>
             </Link>

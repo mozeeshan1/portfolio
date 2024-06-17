@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Slider from "react-slick";
 import parseText from "./textParse";
+import { navigate } from "@/libraries/redirect";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -13,8 +14,6 @@ interface GroupedKeys {
 }
 
 export const runtime = "edge";
-
-
 
 // This function extracts numbers from a string and returns them as an integer.
 const extractNumber = (str: string) => {
@@ -68,7 +67,6 @@ export default function ProjectPage({
 }) {
   const [projectData, setProjectData] = useState<any>({});
 
-
   useEffect(() => {
     async function fetchProjectData() {
       const { data, error } = await supabase
@@ -76,13 +74,18 @@ export default function ProjectPage({
         .select("*")
         .eq("slug", params.project)
         .single();
-      if (!data) {
-        console.log("Projects is null");
-        return [];
-      }
       if (error) {
         console.error("Error fetching project:", error);
+        navigate("/");
         return;
+      }
+      if (!data || data.status.toLowerCase() === "unconfirmed") {
+        console.log("Projects is null");
+        navigate("/");
+        return [];
+      }
+      if (data) {
+        data.date = new Date(data.date).getFullYear().toString(); // Convert date to year only
       }
 
       setProjectData(data);
@@ -169,7 +172,6 @@ export default function ProjectPage({
     }
   };
 
-
   const renderContent = () => {
     const keys = Object.keys(projectData);
     const groupedAndSortedKeys = groupAndSortKeys(keys);
@@ -244,8 +246,18 @@ export default function ProjectPage({
         />
         <div className="absolute transition-all duration-1000 inset-0 bg-gradient-to-t from-white via-transparent to-transparent dark:from-gray-800"></div>
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-10">
-          <h1 className="text-4xl font-bold pb-2">{projectData.title}</h1>
-          <p>{projectData.description}</p>
+          <div className="sm:flex sm:flex-row sm:justify-between sm:items-center">
+            <div className="flex flex-col justify-between items-center sm:items-start">
+              <h1 className="text-4xl font-bold pb-2">{projectData.title}</h1>
+              <p>{projectData.description}</p>
+            </div>
+            <div className="flex flex-col  justify-between items-center">
+              <p className="text-md capitalize w-fit px-4 py-px my-2 rounded-2xl border-2 text-gray-200 dark:text-gray-700 border-blue-600 bg-blue-600 dark:bg-yellow-200 dark:border-yellow-200">
+                {projectData.status}
+              </p>
+              <p className="text-lg capitalize">{projectData.date}</p>
+            </div>
+          </div>
         </div>
       </div>
       {/* Animated arrow */}
