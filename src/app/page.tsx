@@ -190,7 +190,7 @@ export default function Home() {
     }
   };
   return (
-    <Suspense>
+    <Suspense fallback={<div>Loading...</div>}>
       <motion.div
         className="flex min-h-screen flex-col items-center justify-center text-gray-700 dark:bg-gray-800 bg-white transition-colors duration-500 dark:text-gray-200 "
         variants={containerVariants}
