@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/supabase/supabaseClient";
+import { motion } from "framer-motion";
 
 interface PasswordModalProps {
   slug: string;
@@ -13,6 +14,14 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
 }) => {
   const router = useRouter();
   const [password, setPassword] = useState(prefilledPassword);
+  // To close the modal when clicking outside
+  const modalRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Automatically focus the input when the component is mounted
+    inputRef.current?.focus();
+  }, []);
 
   const submitPassword = async () => {
     try {
@@ -62,9 +71,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     router.push(`/`, { scroll: false });
   };
 
-  // To close the modal when clicking outside
-  const modalRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -83,27 +89,51 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [modalRef]);
-
-
- useEffect(() => {
-   document.body.style.overflow = "hidden";
-   return () => {
-     document.body.style.overflow = "auto";
-   };
- }, []);
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter") {
+      submitPassword();
+    }
+  };
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
   return (
-    <div className="fixed top-0 left-0 z-50 w-full h-full flex justify-center items-center bg-black bg-opacity-50">
-      <div ref={modalRef} className="flex flex-col justify-center items-center gap-4 p-12 bg-gray-700 rounded-lg">
+    <motion.div
+      className="fixed top-0 left-0 z-50 w-full h-full flex justify-center items-center bg-black bg-opacity-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        ref={modalRef}
+        className="flex flex-col justify-center items-center max-w-[90vw] text-center gap-4 pt-12 px-12 pb-6 rounded-lg bg-gray-200 dark:bg-gray-700 "
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0 }}
+      >
         <h2>Password Required for {slug}</h2>
         <input
+          ref={inputRef}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className=" mt-4 min-h-12 px-4 rounded-2xl dark:bg-gray-200 dark:text-gray-700"
         />
-        <button onClick={submitPassword}>Submit</button>
-        <button onClick={close}>Close</button>
-      </div>
-    </div>
+        <div className="flex w-full justify-between items-center mt-8">
+          <button onClick={close}>Close</button>
+          <button
+            onClick={submitPassword}
+            className="rounded-lg min-h-12 min-w-16 px-5 py-2 bg-blue-600 text-gray-200 hover:bg-blue-700 dark:bg-yellow-200 dark:text-gray-700 dark:hover:bg-yellow-300"
+          >
+            Submit
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 };
 export default PasswordModal;
