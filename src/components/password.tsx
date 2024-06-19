@@ -82,8 +82,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
 
 
   const close = useCallback(() => {
-    console.log("Loading in close ", loading);
-    console.log("Access Granted in close ", accessGranted);
     if (!loading && !accessGranted) {
       router.push(`/`, { scroll: false });
     }
@@ -120,10 +118,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     };
   }, []);
 
-  useEffect(() => {
-    console.log("Access Granted ", accessGranted);
-    console.log("loading ", loading);
-  }, [accessGranted, loading]);
 
   const modalAnimations = {
     initial: { scale: 0 },

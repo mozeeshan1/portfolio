@@ -7,15 +7,6 @@ import { motion, AnimatePresence} from "framer-motion";
 const ThemeToggle = () => {
   const { theme, setTheme } = useTheme();
 
-  useEffect(() => {
-    console.log("Theme initialized to: ", theme);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    console.log("Theme changed to: ", theme);
-  }, [theme]); // This useEffect will run when 'theme' changes
-
   const toggleTheme = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
