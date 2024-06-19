@@ -9,6 +9,7 @@ const ThemeToggle = () => {
 
   useEffect(() => {
     console.log("Theme initialized to: ", theme);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
