@@ -13,6 +13,7 @@ interface GroupedKeys {
   [key: number]: string[];
 }
 
+export const runtime = "edge";
 
 // This function extracts numbers from a string and returns them as an integer.
 const extractNumber = (str: string) => {
