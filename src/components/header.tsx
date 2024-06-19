@@ -18,10 +18,6 @@ const Header = () => {
     }
   }, [isMenuOpen]);
 
-  useEffect(() => {
-    // Set the scroll position to the top of the page
-    window.scrollTo(0, 0);
-  }, []);
 
   const headerVariants = {
     initial: { opacity: 0, y: -100 },

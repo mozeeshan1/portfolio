@@ -1,35 +1,134 @@
-import React from "react";
+"use client";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import * as motion from "../libraries/motion-lib";
-import supabase from "../supabase/supabaseClient";
+import { motion } from "framer-motion";
+import supabase from "@/supabase/supabaseClient";
 import Link from "next/link";
+import PasswordModal from "@/components/password";
+import { useRouter, useSearchParams } from "next/navigation";
 
-async function Projects() {
-  let { data: projects, error } = await supabase.from("projects").select("*");
-
-  if (error) {
-    console.error("Error fetching projects:", error);
-    return [];
-  }
-  if (projects) {
-    // Process each project's date to extract the year
-    projects = projects
-      .filter((project) => project.status.toLowerCase() !== "unconfirmed") // Filter out unconfirmed projects
-      .map((project) => ({
-        ...project,
-        date: new Date(project.date).getFullYear().toString(), // Convert date to year
-      })) // Sort projects from newest to oldest by year
-      .sort((a, b) => b.date - a.date);
-  } else {
-    console.log("Projects is null");
-    projects = [];
-  }
-
-  return projects;
+interface Project {
+  id: number;
+  title: string;
+  description: string;
+  date: string; // Year as string after processing
+  status: string;
+  titleImageUrl: string;
+  slug: string;
 }
 
-export default async function Home() {
-  const projectsData = await Projects();
+export default function Home() {
+  const [projectsData, setProjectData] = useState<Project[]>([]);
+  const [userMetadata, setUserMetadata] = useState<any>(null);
+  const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const modal = searchParams.get("modal");
+  const slug = searchParams.get("slug") || "";
+  const password = searchParams.get("password") || "";
+  const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+    if (!session) return;
+    if (event === "USER_UPDATED") {
+      setUserMetadata(session.user.user_metadata);
+    }
+  });
+
+  useEffect(() => {
+     return () => {
+      // call unsubscribe to remove the callback
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+
+  useEffect(() => {
+    async function fetchSession() {
+      const session = localStorage.getItem("supabase.auth.token");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return await signInAnonymously();
+      if (session) {
+        const parsedSession = JSON.parse(session).session;
+        const currentTime = new Date().getTime();
+        // Check if the session expiry time is still in the future
+        if (parsedSession && parsedSession.expires_at > currentTime / 1000) {
+          return supabase.auth.setSession(parsedSession.access_token);
+        }
+      }
+      return await signInAnonymously();
+    }
+
+    async function signInAnonymously() {
+      const metadata = { unconfirmedProjects: [] };
+      const { data, error } = await supabase.auth.signInAnonymously({
+        options: { data: metadata },
+      });
+      if (error) {
+        console.error("Error signing in anonymously:", error);
+      } else if (data) {
+        localStorage.setItem("supabase.auth.token", JSON.stringify(data));
+      }
+      return data;
+    }
+    async function fetchProjects() {
+      let { data: projects, error } = await supabase
+        .from("projects")
+        .select("*");
+
+      if (error) {
+        console.error("Error fetching projects:", error);
+        return [];
+      }
+      if (projects) {
+        // Process each project's date to extract the year
+        projects = projects
+          // .filter((project) => project.status.toLowerCase() !== "unconfirmed") // Filter out unconfirmed projects
+          .map((project) => ({
+            ...project,
+            date: new Date(project.date).getFullYear().toString(), // Convert date to year
+          })) // Sort projects from newest to oldest by year
+          .sort((a, b) => b.date - a.date);
+      } else {
+        console.log("Projects is null");
+        projects = [];
+      }
+
+      setProjectData(projects);
+      return;
+    }
+
+    async function checkUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        setUserMetadata(user.user_metadata);
+      }
+    }
+    const fetchImage = async () => {
+      const { data, error } = await supabase.from("projectsData").select("*");
+
+      if (error) {
+        console.error("Failed to fetch project for updating images:", error);
+        return;
+      }
+      data.map((project) => {
+        setImageUrls((prev) => ({
+          ...prev,
+          [project.slug]: project.titleImageUrl,
+        }));
+      });
+    };
+
+    fetchSession().then(() => {
+      fetchProjects().then(() => {
+        checkUser().then(() => {
+          fetchImage();
+        });
+      });
+    });
+  }, []);
 
   // Variants for container animation
   const containerVariants = {
@@ -78,9 +177,19 @@ export default async function Home() {
     },
   };
 
+  const handleProjectClick = (project: Project) => {
+    if (
+      project.status === "unconfirmed" &&
+      !userMetadata.unconfirmedProjects.includes(project.slug)
+    ) {
+      router.push(`/?modal=open&slug=${project.slug}`, { scroll: false });
+    } else {
+      router.push(`/projects/${project.slug}`);
+    }
+  };
   return (
     <motion.div
-      className="flex min-h-screen flex-col items-center justify-center text-gray-700 dark:bg-gray-800 bg-white transition-colors duration-500 dark:text-gray-200 " // Added top padding (pt-16)
+      className="flex min-h-screen flex-col items-center justify-center text-gray-700 dark:bg-gray-800 bg-white transition-colors duration-500 dark:text-gray-200 "
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -121,7 +230,7 @@ export default async function Home() {
             >
               {Array.from({ length: 6 }).map((_, index) => (
                 <motion.svg
-                  key={index}
+                  key={index + 100}
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
                   height="24"
@@ -182,49 +291,53 @@ export default async function Home() {
           className="grid grid-cols-1 lg:grid-cols-2 gap-16 sm:px-16 2xl:px-[15%]"
           variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         >
+          {modal === "open" && (
+            <PasswordModal slug={slug} prefilledPassword={password} />
+          )}
           {projectsData.map((project, index) => (
-            <Link
+            <motion.div
               key={index}
-              href={`/projects/${project.slug}`}
-              className="min-w-60"
-              passHref
+              onClick={() => handleProjectClick(project)}
+              className="p-4 min-w-60 shadow-md w-fit h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
+              variants={childVariants}
+              whileHover={"hover"}
             >
-              <motion.div
-                key={index}
-                className="p-4 shadow-md w-fit h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
-                variants={childVariants}
-                whileHover={"hover"}
-              >
-                <div
-                  key={index}
-                  className="flex flex-col justify-between items-center pb-2 sm:flex-row"
-                >
-                  <div
-                    key={index}
-                    className="flex flex-col justify-between items-center sm:items-start"
+              <div className="flex flex-col justify-between items-center pb-2 sm:flex-row">
+                <div className="flex flex-col justify-between items-center sm:items-start">
+                  <h3 className="text-2xl font-semibold">{project.title}</h3>
+                  <p
+                    className={`pb-2 ${
+                      project.status === "unconfirmed" &&
+                      userMetadata &&
+                      !userMetadata.unconfirmedProjects.includes(project.slug)
+                        ? "blur"
+                        : "blur-none"
+                    }`}
                   >
-                    <h3 className="text-2xl font-semibold">{project.title}</h3>
-                    <p className="pb-2">{project.description}</p>
-                  </div>
-                  <div
-                    key={index}
-                    className="flex flex-col-reverse sm:flex-col justify-between items-center gap-1"
-                  >
-                    <p className="text-md capitalize px-4 py-px rounded-2xl border-2 text-gray-200 dark:text-gray-700 border-blue-600 bg-blue-600 dark:bg-yellow-200 dark:border-yellow-200">
-                      {project.status}
-                    </p>
-                    <p className="text-md capitalize">{project.date}</p>
-                  </div>
+                    {project.description}
+                  </p>
                 </div>
-                <Image
-                  src={project.titleImageUrl}
-                  alt={project.title}
-                  width={1000}
-                  height={1000}
-                  className="w-[90vw] h-auto"
-                />
-              </motion.div>
-            </Link>
+                <div className="flex flex-col-reverse sm:flex-col justify-between items-center gap-1">
+                  <p className="text-md capitalize px-4 py-px rounded-2xl border-2 text-gray-200 dark:text-gray-700 border-blue-600 bg-blue-600 dark:bg-yellow-200 dark:border-yellow-200">
+                    {project.status}
+                  </p>
+                  <p className="text-md capitalize">{project.date}</p>
+                </div>
+              </div>
+              <Image
+                src={imageUrls[project.slug] || project.titleImageUrl}
+                alt={project.title}
+                width={1000}
+                height={1000}
+                className={`w-[90vw] h-auto aspect-video object-cover  ${
+                  project.status === "unconfirmed" &&
+                  userMetadata &&
+                  !userMetadata.unconfirmedProjects.includes(project.slug)
+                    ? "blur"
+                    : "blur-none"
+                }`}
+              />
+            </motion.div>
           ))}
         </motion.div>
       </section>
