@@ -1,7 +1,8 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/supabase/supabaseClient";
 import { motion } from "framer-motion";
+import LoadingCircle from "@/components/loadingIcon";
 
 interface PasswordModalProps {
   slug: string;
@@ -14,7 +15,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
 }) => {
   const router = useRouter();
   const [password, setPassword] = useState(prefilledPassword);
-  // To close the modal when clicking outside
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -26,32 +26,25 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     inputRef.current?.focus();
   }, []);
 
-  // const submitPassword = async () => {
-  //   try {
-  //     const response = await fetch(
-  //       "https://password-auth.secourk.workers.dev/",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify({ slug, password }),
-  //       }
-  //     );
+  const redirect = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+    const newMetadata = user.user_metadata.unconfirmedProjects || [];
+    newMetadata.push(slug);
+    await supabase.auth.updateUser({
+      data: { unconfirmedProjects: newMetadata },
+    });
+    const session = localStorage.getItem("supabase.auth.token") || "";
+    const parsedSession = JSON.parse(session).session;
+    const { data } = await supabase.auth.refreshSession(parsedSession);
+    localStorage.setItem("supabase.auth.token", JSON.stringify(data));
+    router.push(`/projects/${slug}`);
+  }, [slug,router]); 
 
-  //     if (response.ok) {
-  //       alert("Password correct! Access granted.");
-  //       // Optionally redirect or close modal
-  //       redirect();
-  //     } else {
-  //       alert("Password incorrect! Try again.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error submitting password:", error);
-  //   }
-  // };
 
-  const submitPassword = async () => {
+  const submitPassword = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -70,7 +63,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
         setTimeout(() => {
           redirect();
         }, 2000); // Wait for 2 seconds to show the message
-        // STOPPED HERE. IT SHOWS THE STUFF PROPERLY BUT U NEED TO ADD STUFF
       } else {
         setAccessDenied(true);
         setTimeout(() => {
@@ -80,58 +72,47 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
       }
     } catch (error) {
       console.error("Error submitting password:", error);
+      setLoading(false);
       setAccessDenied(true);
       setTimeout(() => {
         setAccessDenied(false);
-        setLoading(false);
       }, 600); // Shake duration
     }
-  };
-  const redirect = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
-    const newMetadata = user.user_metadata.unconfirmedProjects || [];
-    newMetadata.push(slug);
-    await supabase.auth.updateUser({
-      data: { unconfirmedProjects: newMetadata },
-    });
-    const session = localStorage.getItem("supabase.auth.token") || "";
-    const parsedSession = JSON.parse(session).session;
-    const { data } = await supabase.auth.refreshSession(parsedSession);
-    localStorage.setItem("supabase.auth.token", JSON.stringify(data));
-    router.push(`/projects/${slug}`);
-  };
+  }, [password, redirect, slug]); 
 
-  const close = () => {
-    // Adjust URL to show the modal is closed
-    router.push(`/`, { scroll: false });
-  };
+
+  const close = useCallback(() => {
+    console.log("Loading in close ", loading);
+    console.log("Access Granted in close ", accessGranted);
+    if (!loading && !accessGranted) {
+      router.push(`/`, { scroll: false });
+    }
+  }, [loading, accessGranted, router]);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    const handleClickOutside = (event: MouseEvent) => {
       if (
         modalRef.current &&
         !modalRef.current.contains(event.target as Node)
       ) {
         close();
       }
-    }
-
-    // Bind the event listener
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      // Unbind the event listener on clean up
       document.removeEventListener("mousedown", handleClickOutside);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modalRef]);
-  const handleKeyDown = (event: React.KeyboardEvent, status: boolean) => {
-    if (event.key === "Enter" && !status) {
-      submitPassword();
-    }
-  };
+  }, [close]);
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" && !loading) {
+        submitPassword();
+      }
+    },
+    [loading, submitPassword]
+  );
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -140,8 +121,10 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   }, []);
 
   useEffect(() => {
-    console.log(loading);
-  }, [loading]);
+    console.log("Access Granted ", accessGranted);
+    console.log("loading ", loading);
+  }, [accessGranted, loading]);
+
   const modalAnimations = {
     initial: { scale: 0 },
     animate: { scale: 1 },
@@ -161,25 +144,27 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     >
       <motion.div
         ref={modalRef}
-        className="flex flex-col justify-center items-center max-w-[90vw] text-center gap-4 pt-12 px-12 pb-6 rounded-lg bg-gray-200 dark:bg-gray-700 "
+        className=" max-w-[90vw] text-center rounded-lg bg-gray-200 dark:bg-gray-700 "
         variants={modalAnimations}
         initial="initial"
         animate={accessDenied ? "deny" : "animate"}
         exit="exit"
       >
         {!accessGranted ? (
-          <>
-            <h2>Password Required for {slug}</h2>
+          <div className="flex flex-col justify-center items-center gap-4 py-8 min-w-[90vw] sm:min-w-0 sm:px-16">
+            <h2 className="max-w-[90%] sm:max-w-[none]">
+              Password Required for {slug}
+            </h2>
             <input
               ref={inputRef}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => handleKeyDown(e, loading)}
-              className="mt-4 w-full px-4 py-2 rounded-lg"
+              onKeyDown={(e) => handleKeyDown(e)}
+              className="mt-4 w-full px-4 py-2 rounded-lg max-w-[80%] sm:max-w-[none]"
             />
-            <div className="flex w-full justify-between items-center mt-8">
-              <button onClick={() => router.push(`/`)}>Close</button>
+            <div className="flex w-full justify-between items-center mt-8 max-w-[80%] sm:max-w-[none]">
+              <button onClick={close}>Close</button>
               <button
                 onClick={submitPassword}
                 className="rounded-lg px-5 py-2 bg-blue-600 text-white hover:bg-blue-700"
@@ -188,10 +173,16 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
                 Submit
               </button>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="text-center">
-            <p>Access Granted</p>
+          <div className="flex flex-col justify-between items-center w-full gap-8 h-full py-8 min-w-[90vw] sm:min-w-0 sm:px-16">
+            <h1 className="text-4xl text-blue-600 dark:text-yellow-200">
+              Access Granted
+            </h1>
+            <div className="flex flex-col justify-center items-center gap-4">
+              <p>Loading Project...</p>
+              <LoadingCircle />
+            </div>
           </div>
         )}
       </motion.div>

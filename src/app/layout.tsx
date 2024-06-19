@@ -6,7 +6,6 @@ import Footer from "../components/footer";
 import { Providers } from "../components/theme-provider";
 import { Suspense } from "react";
 
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -34,13 +33,20 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} bg-white dark:bg-gray-800`}>
         <Providers>
           <Header />
-          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center gap-24 w-screen h-screen">
+                <p>Loading...</p>
+              </div>
+            }
+          >
+            {children}
+          </Suspense>
           <Footer />
         </Providers>
       </body>
