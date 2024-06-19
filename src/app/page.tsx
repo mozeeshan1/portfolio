@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect,Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import supabase from "@/supabase/supabaseClient";
@@ -190,7 +190,7 @@ export default function Home() {
     }
   };
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+
       <motion.div
         className="flex min-h-screen flex-col items-center justify-center text-gray-700 dark:bg-gray-800 bg-white transition-colors duration-500 dark:text-gray-200 "
         variants={containerVariants}
@@ -345,6 +345,5 @@ export default function Home() {
           </motion.div>
         </section>
       </motion.div>
-    </Suspense>
   );
 }

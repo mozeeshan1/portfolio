@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import { Providers } from "../components/theme-provider";
+import { Suspense } from "react";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -39,7 +40,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-white dark:bg-gray-800`}>
         <Providers>
           <Header />
-          {children}
+          <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
           <Footer />
         </Providers>
       </body>
