@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Slider from "react-slick";
 import parseText from "./textParse";
-import { navigate } from "@/libraries/redirect";
+import { useRouter } from "next/navigation";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -66,22 +66,60 @@ export default function ProjectPage({
   params: { project: string };
 }) {
   const [projectData, setProjectData] = useState<any>({});
+  const router = useRouter();
+
+
+
+
+  useEffect(() => {}, []);
 
   useEffect(() => {
+    async function fetchSession() {
+      const session = localStorage.getItem("supabase.auth.token");
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return await signInAnonymously();
+      if (session) {
+        const parsedSession = JSON.parse(session).session;
+        const currentTime = new Date().getTime();
+        // Check if the session expiry time is still in the future
+        if (parsedSession && parsedSession.expires_at > currentTime / 1000) {
+          return supabase.auth.setSession(parsedSession.access_token);
+        }
+      }
+      return await signInAnonymously();
+    }
+
+    async function signInAnonymously() {
+      const metadata = { unconfirmedProjects: [] };
+      const { data, error } = await supabase.auth.signInAnonymously({
+        options: { data: metadata },
+      });
+      if (error) {
+        console.error("Error signing in anonymously:", error);
+      } else if (data) {
+        localStorage.setItem("supabase.auth.token", JSON.stringify(data));
+      }
+      return data;
+    }
+
     async function fetchProjectData() {
       const { data, error } = await supabase
-        .from("projects")
+        .from("projectsData")
         .select("*")
         .eq("slug", params.project)
         .single();
+
       if (error) {
         console.error("Error fetching project:", error);
-        navigate("/");
+        router.push('/')
         return;
       }
-      if (!data || data.status.toLowerCase() === "unconfirmed") {
+      if (!data) {
+        //|| data.status.toLowerCase() === "unconfirmed"
         console.log("Projects is null");
-        navigate("/");
+        router.push('/')
         return [];
       }
       if (data) {
@@ -91,8 +129,10 @@ export default function ProjectPage({
       setProjectData(data);
     }
 
-    fetchProjectData();
-  }, [params.project]);
+    fetchSession().then(() => {
+      fetchProjectData();
+    });
+  }, [params.project, router]);
 
   // Helper function to determine if the media is an image based on file extension
   const isImage = (src: string) => /\.(jpg|jpeg|png|gif)$/i.test(src);
