@@ -1,9 +1,9 @@
 // components/header.tsx
 "use client";
-import React, { useState,useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import ThemeToggle from "./theme-toggle";
-import { motion,AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -18,7 +18,10 @@ const Header = () => {
     }
   }, [isMenuOpen]);
 
-
+  useEffect(() => {
+    // Set the scroll position to the top of the page
+    window.scrollTo(0, 0);
+  }, []);
   const headerVariants = {
     initial: { opacity: 0, y: -100 },
     animate: { opacity: 1, y: 0, transition: { delay: 0.3, duration: 0.5 } },
