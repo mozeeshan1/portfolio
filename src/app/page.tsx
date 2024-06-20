@@ -81,14 +81,19 @@ export default function Home() {
         return [];
       }
       if (projects) {
+        // Sort projects by full date first
+        projects.sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
         // Process each project's date to extract the year
         projects = projects
           // .filter((project) => project.status.toLowerCase() !== "unconfirmed") // Filter out unconfirmed projects
           .map((project) => ({
             ...project,
             date: new Date(project.date).getFullYear().toString(), // Convert date to year
-          })) // Sort projects from newest to oldest by year
-          .sort((a, b) => b.date - a.date);
+          }));
+        // .sort((a, b) => b.date - a.date) // Sort projects from newest to oldest by year
       } else {
         console.log("Projects is null");
         projects = [];
