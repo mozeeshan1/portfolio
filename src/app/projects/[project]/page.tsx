@@ -148,7 +148,7 @@ export default function ProjectPage({
     speed: 1000,
     slidesToShow: 1,
     autoplay: true,
-    autoplaySpeed: 3000,
+    autoplaySpeed: 5000,
     pauseOnFocus: true,
     responsive: [
       {
@@ -174,7 +174,7 @@ export default function ProjectPage({
               alt={item.alt}
               width="2000"
               height="2000"
-              className="w-full"
+              className="w-full aspect-video object-contain"
             />
           ) : isVideo(item.src) ? (
             <video controls className=" w-full max-w-full max-h-[500px]">
@@ -227,7 +227,6 @@ export default function ProjectPage({
               </h2>
             );
           } else if (key.startsWith("paragraph")) {
-            console.log(projectData[key]);
             return (
               <ReactMarkdown
                 key={key}
@@ -235,7 +234,7 @@ export default function ProjectPage({
                 components={{
                   a: ({ node, ...props }) => (
                     <Link
-                      href={props.href ||""}
+                      href={props.href || ""}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-700 hover:underline dark:text-yellow-200 dark:hover:text-yellow-300"
@@ -253,11 +252,34 @@ export default function ProjectPage({
                   ol: ({ node, ...props }) => (
                     <ul className="list-decimal list-outside" {...props} />
                   ),
+                  h3: ({ node, ...props }) => (
+                    <h3
+                      className="w-full text-2xl font-semibold text-left mb-4"
+                      {...props}
+                    />
+                  ),
+                  h4: ({ node, ...props }) => (
+                    <h4
+                      className="w-full text-xl font-semibold text-left mb-4"
+                      {...props}
+                    />
+                  ),
+                  h5: ({ node, ...props }) => (
+                    <h5
+                      className="w-full text-lg font-semibold text-left mb-4"
+                      {...props}
+                    />
+                  ),
+                  h6: ({ node, ...props }) => (
+                    <h6
+                      className="w-full text-lg font-semibold text-left mb-4"
+                      {...props}
+                    />
+                  ),
                 }}
               >
                 {projectData[key]}
               </ReactMarkdown>
-
             );
           } else if (
             key.startsWith("media") &&
