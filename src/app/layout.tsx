@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "Mohammed Zeeshan's portfolio",
   description:
     "Explore Mohammed Zeeshan's portfolio showcasing expertise in data science and software development, featuring impactful projects that blend innovation with practical solutions.",
-  alternates: { canonical: "https://mozeeshan.com/" },
+  alternates: { canonical: "https://mozeeshan.com" },
   manifest: "/manifest.json",
   authors: { name: "Mohammed Zeeshan", url: "https://mozeeshan.com" },
   generator: "Next.js",
