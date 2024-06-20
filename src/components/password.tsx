@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/supabase/supabaseClient";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import LoadingCircle from "@/components/loadingIcon";
 
 interface PasswordModalProps {
@@ -14,6 +14,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
   prefilledPassword,
 }) => {
   const router = useRouter();
+  const [projectName, setProjectName] = useState("");
   const [password, setPassword] = useState(prefilledPassword);
   const modalRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -25,6 +26,25 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     // Automatically focus the input when the component is mounted
     inputRef.current?.focus();
   }, []);
+
+  useEffect(() => {
+    // Fetch project name on mount
+    const fetchProjectName = async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("title")
+        .eq("slug", slug)
+        .single();
+
+      if (error) {
+        console.error("Error fetching project name:", error);
+      } else {
+        setProjectName(data.title);
+      }
+    };
+
+    fetchProjectName();
+  }, [slug]);
 
   const redirect = useCallback(async () => {
     const {
@@ -41,8 +61,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     const { data } = await supabase.auth.refreshSession(parsedSession);
     localStorage.setItem("supabase.auth.token", JSON.stringify(data));
     router.push(`/projects/${slug}`);
-  }, [slug,router]); 
-
+  }, [slug, router]);
 
   const submitPassword = useCallback(async () => {
     setLoading(true);
@@ -78,8 +97,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
         setAccessDenied(false);
       }, 600); // Shake duration
     }
-  }, [password, redirect, slug]); 
-
+  }, [password, redirect, slug]);
 
   const close = useCallback(() => {
     if (!loading && !accessGranted) {
@@ -118,7 +136,6 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     };
   }, []);
 
-
   const modalAnimations = {
     initial: { scale: 0 },
     animate: { scale: 1 },
@@ -138,7 +155,7 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
     >
       <motion.div
         ref={modalRef}
-        className=" max-w-[90vw] text-center rounded-lg bg-gray-200 dark:bg-gray-700 "
+        className=" max-w-[90vw] text-center rounded-lg bg-gray-200 dark:bg-gray-700"
         variants={modalAnimations}
         initial="initial"
         animate={accessDenied ? "deny" : "animate"}
@@ -146,9 +163,32 @@ const PasswordModal: React.FC<PasswordModalProps> = ({
       >
         {!accessGranted ? (
           <div className="flex flex-col justify-center items-center gap-4 py-8 min-w-[90vw] sm:min-w-0 sm:px-16">
-            <h2 className="max-w-[90%] sm:max-w-[none]">
-              Password Required for {slug}
-            </h2>
+            <motion.h2
+              initial={false}
+              animate={
+                accessDenied
+                  ? {
+                      color: "red",
+                      transition: { ease: "easeInOut", duration: 2 },
+                    }
+                  : {}
+              }
+              className="max-w-[90%] sm:max-w-[none] "
+            >
+              Input password for{" "}
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={projectName || "default"}
+                  className="lowercase"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ ease: "easeInOut" }}
+                >
+                  {projectName || "the project"}
+                </motion.span>
+              </AnimatePresence>
+            </motion.h2>
             <input
               ref={inputRef}
               type="password"
