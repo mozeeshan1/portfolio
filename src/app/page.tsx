@@ -20,7 +20,6 @@ interface Project {
 export default function Home() {
   const [projectsData, setProjectData] = useState<Project[]>([]);
   const [userMetadata, setUserMetadata] = useState<any>(null);
-  const [imageUrls, setImageUrls] = useState<{ [key: string]: string }>({});
   const router = useRouter();
   const searchParams = useSearchParams();
   const modal = searchParams.get("modal");
@@ -72,35 +71,34 @@ export default function Home() {
       return data;
     }
     async function fetchProjects() {
-      let { data: projects, error } = await supabase
+      const { data: projects, error: projectsError } = await supabase
         .from("projects")
         .select("*");
+      const { data: projectsData, error: projectsDataError } = await supabase
+        .from("projectsData")
+        .select("*");
 
-      if (error) {
-        console.error("Error fetching projects:", error);
-        return [];
-      }
-      if (projects) {
-        // Sort projects by full date first
-        projects.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
+      if (!projects || !projectsData) return;
+      if (projectsError)
+        console.error("Error fetching projects:", projectsError);
+      if (projectsDataError)
+        console.error("Error fetching projects data:", projectsDataError);
 
-        // Process each project's date to extract the year
-        projects = projects
-          // .filter((project) => project.status.toLowerCase() !== "unconfirmed") // Filter out unconfirmed projects
-          .map((project) => ({
-            ...project,
-            date: new Date(project.date).getFullYear().toString(), // Convert date to year
-          }));
-        // .sort((a, b) => b.date - a.date) // Sort projects from newest to oldest by year
-      } else {
-        console.log("Projects is null");
-        projects = [];
-      }
+      // Sort projects by full date first
+      projects.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
 
-      setProjectData(projects);
-      return;
+      const mergedData = projects.map((project) => {
+        const extraData = projectsData.find((p) => p.slug === project.slug);
+        return {
+          ...project,
+          ...extraData,
+          date: new Date(project.date).getFullYear().toString(), // Convert date to year during merge
+        };
+      });
+
+      setProjectData(mergedData);
     }
 
     async function checkUser() {
@@ -111,26 +109,10 @@ export default function Home() {
         setUserMetadata(user.user_metadata);
       }
     }
-    const fetchImage = async () => {
-      const { data, error } = await supabase.from("projectsData").select("*");
-
-      if (error) {
-        console.error("Failed to fetch project for updating images:", error);
-        return;
-      }
-      data.map((project) => {
-        setImageUrls((prev) => ({
-          ...prev,
-          [project.slug]: project.titleImageUrl,
-        }));
-      });
-    };
 
     fetchSession().then(() => {
       fetchProjects().then(() => {
-        checkUser().then(() => {
-          fetchImage();
-        });
+        checkUser();
       });
     });
   }, []);
@@ -333,7 +315,7 @@ export default function Home() {
                 </div>
               </div>
               <Image
-                src={imageUrls[project.slug] || project.titleImageUrl}
+                src={project.titleImageUrl}
                 alt={project.title}
                 width={1000}
                 height={1000}
