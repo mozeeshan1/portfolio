@@ -14,19 +14,19 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",
-    "flubber": "^0.4.2",
     "framer-motion": "latest",
     "next": "latest",
     "next-themes": "latest",
     "react": "^18",
     "react-dom": "^18",
+    "react-markdown": "^9.0.1",
     "react-slick": "latest",
     "slick-carousel": "latest"
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.8.2",
     "@types/node": "^20.12.13",
-    "@types/react": "^18",
+    "@types/react": "^18.3.3",
     "@types/react-dom": "^18",
     "@types/react-slick": "^0.23.13",
     "autoprefixer": "^10.0.1",

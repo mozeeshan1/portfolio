@@ -4,10 +4,11 @@ import supabase from "../../../supabase/supabaseClient";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Slider from "react-slick";
-import parseText from "./textParse";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import Link from "next/link";
 
 interface GroupedKeys {
   [key: number]: string[];
@@ -68,9 +69,6 @@ export default function ProjectPage({
   const [projectData, setProjectData] = useState<any>({});
   const router = useRouter();
 
-
-
-
   useEffect(() => {}, []);
 
   useEffect(() => {
@@ -113,13 +111,13 @@ export default function ProjectPage({
 
       if (error) {
         console.error("Error fetching project:", error);
-        router.push('/')
+        router.push("/");
         return;
       }
       if (!data) {
         //|| data.status.toLowerCase() === "unconfirmed"
         console.log("Projects is null");
-        router.push('/')
+        router.push("/");
         return [];
       }
       if (data) {
@@ -229,10 +227,37 @@ export default function ProjectPage({
               </h2>
             );
           } else if (key.startsWith("paragraph")) {
+            console.log(projectData[key]);
             return (
-              <p className="w-full text-left" key={key}>
-                {parseText(projectData[key])}
-              </p>
+              <ReactMarkdown
+                key={key}
+                className={"w-full text-left"}
+                components={{
+                  a: ({ node, ...props }) => (
+                    <Link
+                      href={props.href ||""}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-700 hover:underline dark:text-yellow-200 dark:hover:text-yellow-300"
+                    >
+                      {props.children}
+                    </Link>
+                  ),
+                  // Custom renderer
+                  p: ({ node, ...props }) => {
+                    return <p className="mb-4">{props.children}</p>;
+                  },
+                  ul: ({ node, ...props }) => (
+                    <ul className="list-disc list-outside" {...props} />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ul className="list-decimal list-outside" {...props} />
+                  ),
+                }}
+              >
+                {projectData[key]}
+              </ReactMarkdown>
+
             );
           } else if (
             key.startsWith("media") &&
