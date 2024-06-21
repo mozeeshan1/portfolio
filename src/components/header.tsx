@@ -71,7 +71,7 @@ const Header = () => {
               </svg>
             </Link>
             <nav className={`hidden sm:flex sm:block`}>
-              <ul className="flex pl-6 space-x-8">
+              <ul className="flex pl-6 space-x-8 list-none">
                 <motion.li variants={linkVariants}>
                   <Link href="/#top">Home</Link>
                 </motion.li>

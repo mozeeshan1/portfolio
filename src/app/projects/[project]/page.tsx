@@ -230,7 +230,7 @@ export default function ProjectPage({
             return (
               <ReactMarkdown
                 key={key}
-                className={"w-full text-left"}
+                className={"react-markdown w-full text-left"}
                 components={{
                   a: ({ node, ...props }) => (
                     <Link
@@ -246,12 +246,12 @@ export default function ProjectPage({
                   p: ({ node, ...props }) => {
                     return <p className="mb-4">{props.children}</p>;
                   },
-                  ul: ({ node, ...props }) => (
-                    <ul className="list-disc list-outside" {...props} />
-                  ),
-                  ol: ({ node, ...props }) => (
-                    <ul className="list-decimal list-outside" {...props} />
-                  ),
+                  // ul: ({ node, ...props }) => (
+                  //   <ul className="list-disc list-outside" {...props} />
+                  // ),
+                  // ol: ({ node, ...props }) => (
+                  //   <ul className="list-decimal list-outside" {...props} />
+                  // ),
                   h3: ({ node, ...props }) => (
                     <h3
                       className="w-full text-2xl font-semibold text-left mb-4"
