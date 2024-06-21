@@ -288,7 +288,7 @@ export default function Home() {
             <motion.div
               key={index}
               onClick={() => handleProjectClick(project)}
-              className="p-4 min-w-60 shadow-md w-fit h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
+              className="p-4 min-w-60 shadow-md shadow-gray-700 w-fit h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
               variants={childVariants}
               whileHover={"hover"}
             >
