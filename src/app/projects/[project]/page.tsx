@@ -246,12 +246,12 @@ export default function ProjectPage({
                   p: ({ node, ...props }) => {
                     return <p className="mb-4">{props.children}</p>;
                   },
-                  // ul: ({ node, ...props }) => (
-                  //   <ul className="list-disc list-outside" {...props} />
-                  // ),
-                  // ol: ({ node, ...props }) => (
-                  //   <ul className="list-decimal list-outside" {...props} />
-                  // ),
+                  ul: ({ node, ...props }) => (
+                    <ul className={`${props.className} mb-4`} {...props} />
+                  ),
+                  ol: ({ node, ...props }) => (
+                    <ul className={`${props.className} mb-4`} {...props} />
+                  ),
                   h3: ({ node, ...props }) => (
                     <h3
                       className="w-full text-2xl font-semibold text-left mb-4"
