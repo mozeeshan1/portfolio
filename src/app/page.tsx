@@ -288,15 +288,18 @@ export default function Home() {
             <motion.div
               key={index}
               onClick={() => handleProjectClick(project)}
-              className="p-4 min-w-60 shadow-md shadow-gray-700 w-fit h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
+              className="p-4 min-w-60 max-w-[90vw] shadow-md shadow-gray-700 h-fit hover:shadow-lg hover:shadow-blue-600 dark:hover:shadow-yellow-200 rounded-lg cursor-pointer dark:shadow-white "
               variants={childVariants}
               whileHover={"hover"}
+              whileTap={"hover"}
             >
-              <div className="flex flex-col justify-between items-center pb-2 sm:flex-row">
+              <div className="flex  flex-col justify-between items-center pb-2 sm:flex-row">
                 <div className="flex flex-col justify-between items-center sm:items-start">
-                  <h3 className="text-2xl font-semibold">{project.title}</h3>
+                  <h3 className="text-2xl font-semibold text-center sm:text-left">
+                    {project.title}
+                  </h3>
                   <p
-                    className={`pb-2 ${
+                    className={`pb-2 text-center sm:text-left ${
                       project.status === "unconfirmed" &&
                       userMetadata &&
                       !userMetadata.unconfirmedProjects.includes(project.slug)
@@ -319,7 +322,7 @@ export default function Home() {
                 alt={project.title}
                 width={1000}
                 height={1000}
-                className={`w-[80vw] h-auto aspect-video object-cover  ${
+                className={`min-w-0 w-full max-w-[90vw] h-auto aspect-video object-cover sm:max-w-[none] ${
                   project.status === "unconfirmed" &&
                   userMetadata &&
                   !userMetadata.unconfirmedProjects.includes(project.slug)
