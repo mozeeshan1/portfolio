@@ -254,25 +254,25 @@ export default function ProjectPage({
                   ),
                   h3: ({ node, ...props }) => (
                     <h3
-                      className="w-full text-2xl font-semibold text-left mb-4"
+                      className="w-full text-2xl font-semibold text-left mb-2"
                       {...props}
                     />
                   ),
                   h4: ({ node, ...props }) => (
                     <h4
-                      className="w-full text-xl font-semibold text-left mb-4"
+                      className="w-full text-xl font-semibold text-left mb-2"
                       {...props}
                     />
                   ),
                   h5: ({ node, ...props }) => (
                     <h5
-                      className="w-full text-lg font-semibold text-left mb-4"
+                      className="w-full text-lg font-semibold text-left mb-2"
                       {...props}
                     />
                   ),
                   h6: ({ node, ...props }) => (
                     <h6
-                      className="w-full text-lg font-semibold text-left mb-4"
+                      className="w-full text-lg font-semibold text-left mb-2"
                       {...props}
                     />
                   ),
